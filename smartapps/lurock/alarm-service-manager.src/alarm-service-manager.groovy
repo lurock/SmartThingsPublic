@@ -56,14 +56,14 @@ def updated() {
 def initialize() {
 	subscribe(location, "alarmSystemStatus", alarmSystemChangedHandler)
 
-	if(macAddress) {
-    	def controllerDevice = getChildDevice(macAddress)
+	if(state.macAddress) {
+    	def controllerDevice = getChildDevice(state.macAddress)
         
         if(!controllerDevice) {
         	def hub = location.hubs[0]
-        	controllerDevice = addChildDevice("lurock", "Alarm System Controller", macAddress, hub.id, [label: "Alarm System Controller"])
+        	controllerDevice = addChildDevice("lurock", "Alarm System Controller", state.macAddress, hub.id, [label: "Alarm System Controller"])
         }
-        controllerDevice.init(hostAddress)
+        controllerDevice.init(state.hostAddress)
     	loadDevices()
     }
 }
@@ -85,7 +85,8 @@ def alarmSystemChangedHandler(event) {
 }
 
 def setHomeAlarmSystemState(status) {
-	log.debug "send home alarm system state to: ${status}"
+	log.debug "set home alarm system state to: ${status}"
+    log.debug "send to: ${state.hostAddress}/api/${status}"
     
 	sendHubCommand(new physicalgraph.device.HubAction([
             method: "POST",
@@ -115,10 +116,10 @@ def uninstalled() {
 }
 
 def loadDevices() {
-	log.debug "http request to load devices from: ${settings.hostAddress}"
+	log.debug "http request to load devices from: ${state.hostAddress}"
     
     def headers = [:]
-    headers.put("HOST", settings.hostAddress)
+    headers.put("HOST", state.hostAddress)
     headers.put("Accept", "application/json")
     
     sendHubCommand(new physicalgraph.device.HubAction([
