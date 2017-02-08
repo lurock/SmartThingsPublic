@@ -17,8 +17,11 @@ metadata {
 	definition (name: "Alarm System Controller", namespace: "lurock", author: "Jami Lurock") {
 		capability "Sensor"
         capability "Refresh"
+        capability "Polling"
         
         attribute "alarmStatus", "enum", ["off", "ready", "notReady", "armedStay", "armedAway", "alarmSounding"]
+        attribute "armedMode", "string"
+        attribute "partitionStatus", "string"
 	}
 
 	simulator {
@@ -28,15 +31,24 @@ metadata {
         multiAttributeTile(name:"alarmStatus", type: "generic", width: 6, height: 4){
 			tileAttribute ("device.alarmStatus", key: "PRIMARY_CONTROL") {
 				attributeState "off", label:'off', icon:"st.alarm.alarm.alarm", backgroundColor:"#ffffff"
-				attributeState "armedStay", label:'armed stay', icon:"st.alarm.alarm.alarm", backgroundColor:"#16e713"
-				attributeState "armedAway", label:'armed away', icon:"st.alarm.alarm.alarm", backgroundColor:"#16e713"
+				attributeState "armedStay", label:'armed stay', icon:"st.alarm.alarm.alarm", backgroundColor:"#79b821"
+				attributeState "armedAway", label:'armed away', icon:"st.alarm.alarm.alarm", backgroundColor:"#79b821"
 				attributeState "alarmSounding", label:'siren!', icon:"st.alarm.alarm.alarm", backgroundColor:"#ff0000"
                 attributeState "ready", label:'ready', icon:"st.alarm.alarm.alarm", backgroundColor:"#009dff"
 				attributeState "notReady", label:'not ready', icon:"st.alarm.alarm.alarm", backgroundColor:"#009dff"
 			}
 		}
+        valueTile("armedMode", "device.armedMode", decoration: "flat", width: 2, height: 2) {
+            state "armedMode", label:'${currentValue}', defaultState: true
+        }
+        valueTile("partitionStatus", "device.partitionStatus", decoration: "flat", width: 2, height: 2) {
+            state "partitionStatus", label:'${currentValue}', defaultState: true
+        }
+        standardTile("refresh", "command.refresh", inactiveLabel: false, decoration: "flat", width: 2, height: 2) {
+			state "default", label:'', action:"polling.poll", icon:"st.secondary.refresh"
+		}
 		main "alarmStatus"
-		details(["alarmStatus"])
+		details(["alarmStatus", "armedMode", "partitionStatus", "refresh"])
 	}
 }
 
@@ -52,6 +64,11 @@ def init(hostAddress) {
 	log.debug "set home alarm system host address: ${hostAddress}"
     state.hostAddress = hostAddress
     setCallbackHost()
+}
+
+def poll() {
+	log.debug "Executing 'poll'"
+     getPartitionStatus()
 }
 
 def parse(description) {
@@ -95,9 +112,16 @@ def parse(description) {
                 	parent.setAlarmSystemStatus("off")
                 	break
             }
-        } else {           
-            log.debug "alarm sensors ${msg.data}"
-        	parent.addAlarmSensors(msg.data.data) 
+            getPartitionStatus()
+        } else {
+        	if(msg.data && msg.data.data?.armedMode && msg.data.data?.partitionStatus) {
+            	log.debug "set partition status"
+                sendEvent(name: "armedMode", value: msg.data.data.armedMode)
+                sendEvent(name: "partitionStatus", value: msg.data.data.partitionStatus)
+            } else {
+            	log.debug "alarm sensors ${msg.data}"
+        		parent.addAlarmSensors(msg.data.data) 
+            }
         }
    }
 }
@@ -116,6 +140,20 @@ def setCallbackHost() {
         query: [
             host: getCallBackAddress()
         ]
+    ))
+}
+
+def getPartitionStatus() {
+	log.debug "sending host callback address to: ${state.hostAddress}"
+    
+    def headers = [:]
+    headers.put("HOST", state.hostAddress)
+    headers.put("Accept", "application/json")
+
+    sendHubCommand(new physicalgraph.device.HubAction(
+        method: "GET",
+        path: "/api/alarm-partition-status",
+        headers: headers
     ))
 }
 
