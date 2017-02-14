@@ -35,7 +35,7 @@ metadata {
 				attributeState "armedAway", label:'armed away', icon:"st.alarm.alarm.alarm", backgroundColor:"#79b821"
 				attributeState "alarmSounding", label:'siren!', icon:"st.alarm.alarm.alarm", backgroundColor:"#ff0000"
                 attributeState "ready", label:'ready', icon:"st.alarm.alarm.alarm", backgroundColor:"#009dff"
-				attributeState "notReady", label:'not ready', icon:"st.alarm.alarm.alarm", backgroundColor:"#009dff"
+				attributeState "notReady", label:'not ready', icon:"st.alarm.alarm.alarm", backgroundColor:"#ff6200"
 			}
 		}
         valueTile("armedMode", "device.armedMode", decoration: "flat", width: 2, height: 2) {
@@ -104,17 +104,16 @@ def parse(description) {
                 	parent.setAlarmSystemStatus("off")
                 	break
                 case "Ready":
+                case "PartitionInReadyToForceArm":
                     sendEvent(name: "alarmStatus", value: "ready")
-                	parent.setAlarmSystemStatus("off")
                 	break
                 case "NotReady":
                     sendEvent(name: "alarmStatus", value: "notReady")
-                	parent.setAlarmSystemStatus("off")
                 	break
             }
             getPartitionStatus()
         } else {
-        	if(msg.data && msg.data.data?.armedMode && msg.data.data?.partitionStatus) {
+        	if(msg.data && isHashMap(msg.data.data) && msg.data.data.containsKey("armedMode") && msg.data.data.containsKey("partitionStatus")) {
             	log.debug "set partition status"
                 sendEvent(name: "armedMode", value: msg.data.data.armedMode)
                 sendEvent(name: "partitionStatus", value: msg.data.data.partitionStatus)
@@ -124,6 +123,15 @@ def parse(description) {
             }
         }
    }
+}
+
+def isHashMap(object) {
+	def isMap = false
+    try {
+    	object.containsKey("")
+    	isMap = true
+    } catch (e) { }
+    return isMap
 }
 
 def setCallbackHost() {
