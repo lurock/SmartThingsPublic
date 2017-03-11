@@ -30,6 +30,13 @@ preferences {
 		input "macAddress", "text", required: false, title: "Alarm Controller Mac Address"
         input "hostAddress", "text", required: false, title: "Alarm Controller Host Address"
 	}
+    section("Door Control") {
+		input "doorlock", "capability.lock", title: "Door Lock", description: "Door lock to automatically open using NFC", required: false
+    }
+}
+
+def unlockDoor() {
+	doorlock.unlock()
 }
 
 def installed() {
