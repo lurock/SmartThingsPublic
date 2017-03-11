@@ -68,14 +68,14 @@ def init(hostAddress) {
 
 def poll() {
 	log.debug "Executing 'poll'"
-     getPartitionStatus()
+    getPartitionStatus() 
 }
 
 def parse(description) {
 	log.debug "incoming data..."
     def msg = parseLanMessage(description)
-    //log.debug "data ${msg.data}"
-    //log.debug "headers ${msg.headers}"
+    log.debug "data ${msg.data}"
+    log.debug "headers ${msg.headers}"
     
     if(msg.data) {
     	if(msg.headers.actiontype && msg.headers.actiontype == "zoneStatus") {
@@ -117,6 +117,8 @@ def parse(description) {
             	log.debug "set partition status"
                 sendEvent(name: "armedMode", value: msg.data.data.armedMode)
                 sendEvent(name: "partitionStatus", value: msg.data.data.partitionStatus)
+            } else if(msg.data && isHashMap(msg.data) && msg.data.containsKey("unlockDoor")) {
+            	parent.unlockDoor()
             } else {
             	log.debug "alarm sensors ${msg.data}"
         		parent.addAlarmSensors(msg.data.data) 
