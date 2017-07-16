@@ -91,7 +91,7 @@ def parse(description) {
                 	if(msg.data.armedMode == "StayMode") {
    	                	sendEvent(name: "alarmStatus", value: "armedStay")
                 		parent.setAlarmSystemStatus("stay")
-                    } else {
+                    } else if(msg.data.armedMode == "AwayMode") {
                         sendEvent(name: "alarmStatus", value: "armedAway")
                     	parent.setAlarmSystemStatus("away")
                     }
