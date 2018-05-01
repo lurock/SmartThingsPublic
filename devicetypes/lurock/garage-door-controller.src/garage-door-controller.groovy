@@ -100,23 +100,13 @@ def parse(description) {
 def open() {
 	log.debug "Executing 'open'"
 	sendEvent(name: "door", value: "opening")
-    runIn(6, finishOpening)
+    toggleGarageDoorOpener()
 }
 
 def close() {
 	log.debug "Executing 'close'"
     sendEvent(name: "door", value: "closing")
-	runIn(6, finishClosing)
-}
-
-def finishOpening() {
-    sendEvent(name: "door", value: "open")
-    sendEvent(name: "contact", value: "open")
-}
-
-def finishClosing() {
-    sendEvent(name: "door", value: "closed")
-    sendEvent(name: "contact", value: "closed")
+	toggleGarageDoorOpener()
 }
 
 def toggleGarageDoorOpener() {
