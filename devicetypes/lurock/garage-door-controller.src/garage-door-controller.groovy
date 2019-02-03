@@ -18,6 +18,7 @@ metadata {
 		capability "Garage Door Control"
         capability "Door Control"
         capability "Contact Sensor"
+        capability "Switch"
         capability "Polling"
 	}
 
@@ -95,6 +96,18 @@ def parse(description) {
                 break            	
         }
     }
+}
+
+def on() {
+	log.debug "Executing 'on'"
+	sendEvent(name: "door", value: "opening")
+    toggleGarageDoorOpener()
+}
+
+def off() {
+	log.debug "Executing 'off'"
+    sendEvent(name: "door", value: "closing")
+	toggleGarageDoorOpener()
 }
 
 def open() {
