@@ -197,7 +197,7 @@ def sendPoolControllerCommand(command, value) {
 }
 
 def setHeatingPoint(data) {
-	sendPoolControllerCommand("SPA_HTR", data.temp)
+	sendPoolControllerCommand("spa_htr_set_pnt", data.temp)
 }
 
 def heatUp() {

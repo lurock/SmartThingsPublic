@@ -203,7 +203,7 @@ def sendPoolControllerCommand(command, value) {
 }
 
 def setHeatingPoint(data) {
-	sendPoolControllerCommand("POOL_HTR", data.temp)
+	sendPoolControllerCommand("pool_htr_set_pnt", data.temp)
 }
 
 def heatUp() {
